@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.mihaildemidoff</groupId>
         <artifactId>reactive-tg-bots</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
 
     <artifactId>reactive-tg-bots-core</artifactId>
