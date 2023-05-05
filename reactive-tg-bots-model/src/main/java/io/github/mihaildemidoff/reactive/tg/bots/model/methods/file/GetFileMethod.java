@@ -8,6 +8,7 @@ import io.github.mihaildemidoff.reactive.tg.bots.model.common.GenericBotApiRespo
 import io.github.mihaildemidoff.reactive.tg.bots.model.common.methoddefinition.BotMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.common.methoddefinition.TypedBotMethodDefinition;
 import io.github.mihaildemidoff.reactive.tg.bots.model.file.File;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -40,8 +41,9 @@ public class GetFileMethod implements TypedBotMethodDefinition<File> {
      * File identifier to get information about
      */
     @NotNull
+    @NotBlank
     @JsonProperty("file_id")
-    private final Long fileId;
+    private final String fileId;
 
     @Override
     public TypeReference<GenericBotApiResponse<File>> getResponseClass() {

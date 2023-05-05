@@ -23,6 +23,16 @@ public interface BaseBotMethodDefinition<RESPONSE> {
     }
 
     /**
+     * Return if method is multipart.
+     *
+     * @return true if method is multipart otherwise false
+     */
+    @JsonIgnore
+    default boolean isMultipartMethod() {
+        return false;
+    }
+
+    /**
      * Response class used for response deserialization.
      *
      * @return TypeReference of response

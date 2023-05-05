@@ -1,11 +1,12 @@
 package io.github.mihaildemidoff.reactive.tg.bots.example.command;
 
-import io.github.mihaildemidoff.reactive.tg.bots.core.TelegramClient;
+import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramClient;
 import io.github.mihaildemidoff.reactive.tg.bots.model.file.input.InputStreamInputFile;
 import io.github.mihaildemidoff.reactive.tg.bots.model.file.input.UrlInputFile;
 import io.github.mihaildemidoff.reactive.tg.bots.model.media.InputMediaPhoto;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.message.SendMediaGroupMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.update.Update;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -14,14 +15,16 @@ import java.io.InputStream;
 import java.util.List;
 
 @Slf4j
+@RequiredArgsConstructor
 public class MediaGroupCommandHandler implements CommandHandler {
+
+    private final TelegramClient client;
 
     private static final String PHOTO1 = "sample_image.jpg";
     private static final String PHOTO2 = "sample_image2.jpg";
 
     @Override
-    public Mono<Boolean> handle(final TelegramClient client,
-                                final Update update) {
+    public Mono<Boolean> handle(final Update update) {
         return Mono.fromCallable(() -> buildMethod(update))
                 .flatMap(client::executeMethod)
                 .map(ignored -> true)

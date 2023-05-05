@@ -1,22 +1,23 @@
 package io.github.mihaildemidoff.reactive.tg.bots.example.command;
 
-import io.github.mihaildemidoff.reactive.tg.bots.core.TelegramClient;
+import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramClient;
 import io.github.mihaildemidoff.reactive.tg.bots.model.file.input.InputStreamInputFile;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.message.SendPhotoMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.update.Update;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
 
 import java.io.InputStream;
 
+@RequiredArgsConstructor
 public class PhotoFileCommandHandler implements CommandHandler {
 
-
+    private final TelegramClient client;
     private static final String PHOTO = "sample_image.jpg";
 
     @Override
-    public Mono<Boolean> handle(final TelegramClient client,
-                                final Update update) {
+    public Mono<Boolean> handle(final Update update) {
         return Mono.fromCallable(() -> SendPhotoMethod.builder()
                         .chatId(update.getMessage().getChat().getId().toString())
                         .photo(InputStreamInputFile.builder()

@@ -1,6 +1,6 @@
 package io.github.mihaildemidoff.reactive.tg.bots.example.command;
 
-import io.github.mihaildemidoff.reactive.tg.bots.core.TelegramClient;
+import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramClient;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.bot.GetMeMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.bot.GetMyDescriptionMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.bot.GetMyNameMethod;
@@ -8,13 +8,16 @@ import io.github.mihaildemidoff.reactive.tg.bots.model.methods.bot.GetMyShortDes
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.bot.rights.GetMyDefaultAdministratorRightsMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.message.SendMessageMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.update.Update;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+@RequiredArgsConstructor
 public class GetInfoCommandHandler implements CommandHandler {
 
+    private final TelegramClient client;
 
     @Override
-    public Mono<Boolean> handle(final TelegramClient client, final Update update) {
+    public Mono<Boolean> handle(final Update update) {
         final GetMeMethod getMeMethod = GetMeMethod.builder().build();
         final GetMyNameMethod getMyNameMethod = GetMyNameMethod.builder()
                 .build();

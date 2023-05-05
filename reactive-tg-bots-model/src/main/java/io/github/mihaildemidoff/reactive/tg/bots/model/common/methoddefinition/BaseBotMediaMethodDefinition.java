@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.mihaildemidoff.reactive.tg.bots.model.file.input.InputFile;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interface-marker. All telegram methods with media payload should implement this class.
@@ -20,6 +21,17 @@ public interface BaseBotMediaMethodDefinition<RESPONSE> extends BaseBotMethodDef
      */
     @JsonIgnore
     List<InputFile> getAllInputFiles();
+
+    /**
+     * {@inheritDoc}
+     */
+    @JsonIgnore
+    default boolean isMultipartMethod() {
+        return Optional.ofNullable(getAllInputFiles())
+                .orElse(List.of())
+                .stream()
+                .anyMatch(InputFile::isMultipart);
+    }
 
     /**
      * {@inheritDoc}

@@ -1,6 +1,9 @@
 package io.github.mihaildemidoff.reactive.tg.bots.example;
 
-import io.github.mihaildemidoff.reactive.tg.bots.core.TelegramClient;
+import io.github.mihaildemidoff.reactive.tg.bots.core.client.DefaultTelegramClient;
+import io.github.mihaildemidoff.reactive.tg.bots.core.client.DefaultTelegramPoller;
+import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramClient;
+import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramPoller;
 import io.github.mihaildemidoff.reactive.tg.bots.core.http.HttpClientBuilder;
 import io.github.mihaildemidoff.reactive.tg.bots.core.properties.TelegramBotProperties;
 import io.github.mihaildemidoff.reactive.tg.bots.core.validation.ValidatorValidationService;
@@ -23,11 +26,15 @@ import io.github.mihaildemidoff.reactive.tg.bots.model.message.MessageEntityType
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.bot.DeleteMyCommandsMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.bot.GetMyCommandsMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.bot.SetMyCommandsMethod;
+import io.github.mihaildemidoff.reactive.tg.bots.model.update.Update;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -43,6 +50,7 @@ public class ComplexExample {
     private static final ComplexExample example = new ComplexExample();
 
     private TelegramClient client;
+    private TelegramPoller poller;
     private List<CommandHandler> handlers = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
@@ -50,23 +58,25 @@ public class ComplexExample {
     }
 
     private void startExample() throws IOException {
-        client = initClient();
+        final TelegramBotProperties tgProperties = initProperties();
+        client = initClient(tgProperties);
+        poller = new DefaultTelegramPoller(client, tgProperties);
         initHandlers();
         initCommands();
         startListener();
     }
 
     private void initHandlers() {
-        handlers.add(new GetInfoCommandHandler());
-        handlers.add(new SetNameCommandHandler());
-        handlers.add(new SetDescriptionCommandHandler());
-        handlers.add(new SetShortDescriptionCommandHandler());
-        handlers.add(new PhotoUrlCommandHandler());
-        handlers.add(new PhotoFileCommandHandler());
-        handlers.add(new VoiceUrlCommandHandler());
-        handlers.add(new AudioFileCommandHandler());
-        handlers.add(new DocumentFileCommandHandler());
-        handlers.add(new MediaGroupCommandHandler());
+        handlers.add(new GetInfoCommandHandler(client));
+        handlers.add(new SetNameCommandHandler(client));
+        handlers.add(new SetDescriptionCommandHandler(client));
+        handlers.add(new SetShortDescriptionCommandHandler(client));
+        handlers.add(new PhotoUrlCommandHandler(client));
+        handlers.add(new PhotoFileCommandHandler(client));
+        handlers.add(new VoiceUrlCommandHandler(client));
+        handlers.add(new AudioFileCommandHandler(client));
+        handlers.add(new DocumentFileCommandHandler(client));
+        handlers.add(new MediaGroupCommandHandler(client));
     }
 
     private void initCommands() {
@@ -95,7 +105,7 @@ public class ComplexExample {
     }
 
     private void startListener() {
-        client.getUpdatesPublisher(List.of())
+        poller.getUpdatesPublisher(List.of())
                 .flatMap(update -> {
                     log.info("Got update {}", update);
                     if (update.getMessage() != null
@@ -109,24 +119,48 @@ public class ComplexExample {
                                     .findFirst();
                             if (foundHandler.isPresent()) {
                                 return foundHandler.get()
-                                        .handle(client, update)
+                                        .handle(update)
                                         .doOnError(error -> log.error("Error occurred during handler invocation"))
                                         .onErrorReturn(false);
                             }
                         }
+                    }
+                    if (update.getMessage().getPhoto() != null && !update.getMessage().getPhoto().isEmpty()) {
+                        return downloadFiles(update);
                     }
                     return Mono.just(true);
                 })
                 .subscribe();
     }
 
-    private TelegramClient initClient() throws IOException {
+    private Mono<Boolean> downloadFiles(final Update update) {
+        return Flux.fromIterable(update.getMessage().getPhoto())
+                .flatMap(file -> client.getFileAsInputStream(file.getFileId())
+                        .flatMap(inputStream -> {
+                            try {
+                                IOUtils.copy(inputStream, new FileOutputStream("/Users/mihaildemidoff/temp/" + file.getFileUniqueId() + ".jpg"));
+                                return Mono.just(true);
+                            } catch (IOException e) {
+                                log.error("Copy error", e);
+                                throw new RuntimeException(e);
+                            }
+                        }))
+                .doOnError(error -> log.error("Error during downloading file", error))
+                .onErrorReturn(false)
+                .then(Mono.just(true));
+    }
+
+    private TelegramClient initClient(final TelegramBotProperties properties) throws IOException {
+        final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        return new DefaultTelegramClient(properties, HttpClientBuilder.defaultHttpClient(properties.getBaseUrl(), properties.getTimeout()),
+                new ValidatorValidationService(factory.getValidator()));
+    }
+
+    private TelegramBotProperties initProperties() throws IOException {
         try (InputStream input = ComplexExample.class.getClassLoader().getResourceAsStream("config.properties")) {
             final Properties prop = new Properties();
             prop.load(input);
-            final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-            final TelegramBotProperties tgProperties = new TelegramBotProperties(prop.getProperty("telegram.bot.token"), Duration.ofSeconds(10), Duration.ofSeconds(50), prop.getProperty("telegram.bot.url"));
-            return new TelegramClient(tgProperties, HttpClientBuilder.defaultHttpClient(Duration.ofSeconds(10)), new ValidatorValidationService(factory.getValidator()));
+            return new TelegramBotProperties(prop.getProperty("telegram.bot.token"), Duration.ofSeconds(10), Duration.ofSeconds(50), prop.getProperty("telegram.bot.url"));
         }
     }
 

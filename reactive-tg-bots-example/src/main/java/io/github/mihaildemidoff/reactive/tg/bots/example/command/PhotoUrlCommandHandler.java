@@ -1,17 +1,19 @@
 package io.github.mihaildemidoff.reactive.tg.bots.example.command;
 
-import io.github.mihaildemidoff.reactive.tg.bots.core.TelegramClient;
+import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramClient;
 import io.github.mihaildemidoff.reactive.tg.bots.model.file.input.UrlInputFile;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.message.SendPhotoMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.update.Update;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+@RequiredArgsConstructor
 public class PhotoUrlCommandHandler implements CommandHandler {
 
+    private final TelegramClient client;
 
     @Override
-    public Mono<Boolean> handle(final TelegramClient client,
-                                final Update update) {
+    public Mono<Boolean> handle(final Update update) {
         return client.executeMethod(SendPhotoMethod.builder()
                         .chatId(update.getMessage().getChat().getId().toString())
                         .photo(UrlInputFile.builder()

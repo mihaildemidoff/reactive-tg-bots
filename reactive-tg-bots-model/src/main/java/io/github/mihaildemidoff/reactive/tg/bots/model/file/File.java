@@ -48,7 +48,6 @@ public class File implements BotApiResponse {
      * difficulty/silent defects in interpreting it. But it has at most 52 significant bits, so a signed 64-bit integer
      * or double-precision float type are safe for storing this value.
      */
-    @NotNull
     @JsonProperty("file_size")
     private final Long fileSize;
 
@@ -56,7 +55,6 @@ public class File implements BotApiResponse {
      * <b>Optional.</b><br>
      * File path. Use https://api.telegram.org/file/bot&lt;token&gt;/&lt;file_path&gt; to get the file.
      */
-    @NotNull
     @JsonProperty("file_path")
     private final String filePath;
 }
