@@ -9,21 +9,19 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramClient;
+import io.github.mihaildemidoff.reactive.tg.bots.core.client.receiver.JsonResponseReceiver;
 import io.github.mihaildemidoff.reactive.tg.bots.core.client.sender.JsonSender;
 import io.github.mihaildemidoff.reactive.tg.bots.core.client.sender.MultipartSender;
-import io.github.mihaildemidoff.reactive.tg.bots.core.exception.ResponseDeserializationException;
 import io.github.mihaildemidoff.reactive.tg.bots.core.exception.UnsuccessfulBotMethodInvocationException;
 import io.github.mihaildemidoff.reactive.tg.bots.core.http.HttpClientBuilder;
 import io.github.mihaildemidoff.reactive.tg.bots.core.properties.TelegramBotProperties;
 import io.github.mihaildemidoff.reactive.tg.bots.core.validation.NoOpValidationService;
 import io.github.mihaildemidoff.reactive.tg.bots.core.validation.ValidationService;
-import io.github.mihaildemidoff.reactive.tg.bots.model.common.GenericBotApiResponse;
 import io.github.mihaildemidoff.reactive.tg.bots.model.common.methoddefinition.BaseBotMediaMethodDefinition;
 import io.github.mihaildemidoff.reactive.tg.bots.model.common.methoddefinition.BaseBotMethodDefinition;
 import io.github.mihaildemidoff.reactive.tg.bots.model.file.File;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.file.GetFileMethod;
 import io.netty.handler.codec.http.QueryStringEncoder;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -99,23 +97,22 @@ public class DefaultTelegramClient implements TelegramClient {
     /**
      * {@inheritDoc}
      */
-    @Valid
+    @Override
     public <RESPONSE> Mono<RESPONSE> executeMethod(final BaseBotMethodDefinition<RESPONSE> method,
                                                    final Duration timeout) {
+        validationService.validateMethod(method);
         final HttpClient.RequestSender baseRequest = httpClient
                 .responseTimeout(timeout)
                 .post()
                 .uri(buildUri(method.getMethod().getMethodName()));
         final HttpClient.ResponseReceiver<?> responseReceiver = getResponseReceiver(baseRequest, method);
         return responseReceiver
-                .responseSingle((httpClientResponse, byteBufMono) -> byteBufMono
-                        .asInputStream()
-                        .map(is -> readJson(method, is)))
-                .flatMap(response -> {
+                .responseSingle(new JsonResponseReceiver<>(objectMapper, method))
+                .<RESPONSE>handle((response, sink) -> {
                     if (!Objects.equals(response.getOk(), Boolean.TRUE)) {
-                        return Mono.error(new UnsuccessfulBotMethodInvocationException("Error response", response.getErrorCode(), response.getDescription()));
+                        sink.error(new UnsuccessfulBotMethodInvocationException("Error response", response.getErrorCode(), response.getDescription()));
                     } else {
-                        return Mono.just(response.getResult());
+                        sink.next(response.getResult());
                     }
                 })
                 .doOnEach(r -> log.debug("Response: {}", r));
@@ -167,24 +164,6 @@ public class DefaultTelegramClient implements TelegramClient {
     }
 
     /**
-     * Deserializes response of method.  Method throws {@link ResponseDeserializationException} in case of any error
-     * during response deserialization
-     *
-     * @param method     telegram method
-     * @param is         InputStream with response
-     * @param <RESPONSE> response class
-     * @return Mono with deserialized response
-     */
-    private <RESPONSE> GenericBotApiResponse<RESPONSE> readJson(final BaseBotMethodDefinition<RESPONSE> method,
-                                                                final InputStream is) {
-        try {
-            return objectMapper.readValue(is, method.getResponseClass());
-        } catch (final Exception e) {
-            throw new ResponseDeserializationException(String.format("Error during response deserialization. Class: %s, method: %s", method.getResponseClass(), method.getMethod()), e);
-        }
-    }
-
-    /**
      * Build telegram path uri in form: '/bot`token`/`method`'
      *
      * @param method method name
@@ -202,7 +181,8 @@ public class DefaultTelegramClient implements TelegramClient {
      * @return built file uri
      */
     private String buildFileUri(final String filePath) {
-        return String.format("/file/bot%s/%s", properties.getToken(), filePath);
+        final QueryStringEncoder encoder = new QueryStringEncoder(String.format("/file/bot%s/%s", properties.getToken(), filePath));
+        return encoder.toString();
     }
 
     private <RESPONSE> HttpClient.ResponseReceiver<?> getResponseReceiver(final HttpClient.RequestSender baseRequest,
