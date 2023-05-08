@@ -110,7 +110,7 @@ public class DefaultTelegramClient implements TelegramClient {
                 .responseSingle(new JsonResponseReceiver<>(objectMapper, method))
                 .<RESPONSE>handle((response, sink) -> {
                     if (!Objects.equals(response.getOk(), Boolean.TRUE)) {
-                        sink.error(new UnsuccessfulBotMethodInvocationException("Error response", response.getErrorCode(), response.getDescription()));
+                        sink.error(new UnsuccessfulBotMethodInvocationException(String.format("Error response on method: %s. Code: %d, description: %s", method.getMethod().getMethodName(), response.getErrorCode(), response.getDescription()), response.getErrorCode(), response.getDescription()));
                     } else {
                         sink.next(response.getResult());
                     }
