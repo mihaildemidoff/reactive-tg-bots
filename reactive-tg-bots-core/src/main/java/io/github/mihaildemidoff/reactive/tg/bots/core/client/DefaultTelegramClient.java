@@ -14,7 +14,7 @@ import io.github.mihaildemidoff.reactive.tg.bots.core.client.sender.JsonSender;
 import io.github.mihaildemidoff.reactive.tg.bots.core.client.sender.MultipartSender;
 import io.github.mihaildemidoff.reactive.tg.bots.core.exception.UnsuccessfulBotMethodInvocationException;
 import io.github.mihaildemidoff.reactive.tg.bots.core.http.HttpClientBuilder;
-import io.github.mihaildemidoff.reactive.tg.bots.core.properties.TelegramBotProperties;
+import io.github.mihaildemidoff.reactive.tg.bots.core.properties.api.TelegramBotProperties;
 import io.github.mihaildemidoff.reactive.tg.bots.core.validation.NoOpValidationService;
 import io.github.mihaildemidoff.reactive.tg.bots.core.validation.ValidationService;
 import io.github.mihaildemidoff.reactive.tg.bots.model.common.methoddefinition.BaseBotMediaMethodDefinition;

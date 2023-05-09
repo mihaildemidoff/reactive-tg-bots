@@ -1,5 +1,6 @@
 package io.github.mihaildemidoff.reactive.tg.bots.core.client.api;
 
+import io.github.mihaildemidoff.reactive.tg.bots.core.properties.api.TelegramBotProperties;
 import io.github.mihaildemidoff.reactive.tg.bots.model.common.methoddefinition.BaseBotMethodDefinition;
 import io.github.mihaildemidoff.reactive.tg.bots.model.file.File;
 import reactor.core.publisher.Flux;
@@ -22,7 +23,7 @@ public interface TelegramClient {
      * @return Mono with deserialized response or Mono.error.
      * See {@link io.github.mihaildemidoff.reactive.tg.bots.core.exception.TelegramBotClientException} for all possible errors.
      * @see io.github.mihaildemidoff.reactive.tg.bots.core.exception.TelegramBotClientException
-     * @see io.github.mihaildemidoff.reactive.tg.bots.core.properties.TelegramBotProperties#timeout
+     * @see TelegramBotProperties#getTimeout()
      */
     <RESPONSE> Mono<RESPONSE> executeMethod(BaseBotMethodDefinition<RESPONSE> method);
 
@@ -35,7 +36,7 @@ public interface TelegramClient {
      * @return Mono with deserialized response or Mono.error.
      * See {@link io.github.mihaildemidoff.reactive.tg.bots.core.exception.TelegramBotClientException} for all possible errors.
      * @see io.github.mihaildemidoff.reactive.tg.bots.core.exception.TelegramBotClientException
-     * @see io.github.mihaildemidoff.reactive.tg.bots.core.properties.TelegramBotProperties#timeout
+     * @see TelegramBotProperties#getTimeout()
      */
     <RESPONSE> Mono<RESPONSE> executeMethod(BaseBotMethodDefinition<RESPONSE> method, Duration timeout);
 

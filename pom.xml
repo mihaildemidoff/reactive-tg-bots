@@ -31,7 +31,7 @@
     <modules>
         <module>reactive-tg-bots-model</module>
         <module>reactive-tg-bots-core</module>
-        <module>reactive-tg-bots-example</module>
+        <module>reactive-tg-bots-autoconfiguration</module>
     </modules>
 
     <scm>
@@ -137,6 +137,11 @@
             <dependency>
                 <groupId>io.github.mihaildemidoff</groupId>
                 <artifactId>reactive-tg-bots-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.mihaildemidoff</groupId>
+                <artifactId>reactive-tg-bots-autoconfiguration</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!--TESTING-->
@@ -352,7 +357,29 @@
 
     <profiles>
         <profile>
-            <id>release</id>
+            <id>no-deploy</id>
+            <!--
+            According to https://github.com/sonatype/nexus-maven-plugins/tree/master/staging/maven-plugin
+            skipNexusStagingDeployMojo may not be set to true in the last reactor module. Because we don't
+            want to deploy our last module, nor a dummy module, we simply omit the relevant modules when
+            a deploy is in progress.
+            -->
+            <activation>
+                <property>
+                    <name>!deploy</name>
+                </property>
+            </activation>
+            <modules>
+                <module>reactive-tg-bots-examples</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>deploy</id>
+            <activation>
+                <property>
+                    <name>deploy</name>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>

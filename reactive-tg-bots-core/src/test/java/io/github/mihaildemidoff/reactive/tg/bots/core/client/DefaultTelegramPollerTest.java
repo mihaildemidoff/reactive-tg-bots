@@ -1,7 +1,7 @@
 package io.github.mihaildemidoff.reactive.tg.bots.core.client;
 
 import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramClient;
-import io.github.mihaildemidoff.reactive.tg.bots.core.properties.TelegramBotProperties;
+import io.github.mihaildemidoff.reactive.tg.bots.core.properties.api.TelegramBotProperties;
 import io.github.mihaildemidoff.reactive.tg.bots.model.common.methoddefinition.BaseBotMethodDefinition;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.update.GetUpdatesMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.update.Update;

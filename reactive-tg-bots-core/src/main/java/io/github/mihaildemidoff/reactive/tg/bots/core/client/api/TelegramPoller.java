@@ -1,5 +1,6 @@
 package io.github.mihaildemidoff.reactive.tg.bots.core.client.api;
 
+import io.github.mihaildemidoff.reactive.tg.bots.core.properties.api.TelegramBotProperties;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.update.UpdateType;
 import io.github.mihaildemidoff.reactive.tg.bots.model.update.Update;
 import reactor.core.publisher.Flux;
@@ -33,7 +34,7 @@ public interface TelegramPoller {
      *
      * @param allowedUpdates list of allowed updates
      * @return flux with updates
-     * @see io.github.mihaildemidoff.reactive.tg.bots.core.properties.TelegramBotProperties#longPollingTimeout
+     * @see TelegramBotProperties#getLongPollingTimeout()
      */
     Flux<Update> getUpdatesPublisher(List<UpdateType> allowedUpdates);
 

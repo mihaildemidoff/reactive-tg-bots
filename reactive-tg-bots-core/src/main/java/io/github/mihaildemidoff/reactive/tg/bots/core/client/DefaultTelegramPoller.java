@@ -2,7 +2,7 @@ package io.github.mihaildemidoff.reactive.tg.bots.core.client;
 
 import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramClient;
 import io.github.mihaildemidoff.reactive.tg.bots.core.client.api.TelegramPoller;
-import io.github.mihaildemidoff.reactive.tg.bots.core.properties.TelegramBotProperties;
+import io.github.mihaildemidoff.reactive.tg.bots.core.properties.api.TelegramBotProperties;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.update.GetUpdatesMethod;
 import io.github.mihaildemidoff.reactive.tg.bots.model.methods.update.UpdateType;
 import io.github.mihaildemidoff.reactive.tg.bots.model.update.Update;
@@ -42,7 +42,8 @@ public class DefaultTelegramPoller implements TelegramPoller {
                         final GetUpdatesMethod request = buildGetUpdatesMethod(allowedUpdates, state);
                         final List<Update> updates = Optional.ofNullable(telegramClient.executeMethod(request,
                                                 Duration.ofSeconds((int) (request.getTimeout() * 1.5)))
-                                        .share()
+                                        .doOnError(error -> log.error("Error occurred during getting long-polling updates", error))
+                                        .onErrorReturn(List.of())
                                         .block())
                                 .orElse(List.of());
                         final Long newUpdateId = calculateOffset(state, updates);
@@ -54,9 +55,10 @@ public class DefaultTelegramPoller implements TelegramPoller {
                         return state;
                     }
                 })
-                .subscribeOn(Schedulers.newSingle("tg", false))
+                .subscribeOn(Schedulers.boundedElastic())
                 .map(it -> (List<Update>) it)
-                .flatMapIterable(it -> it);
+                .flatMapIterable(it -> it)
+                .publishOn(Schedulers.newSingle("tg", false));
     }
 
     private GetUpdatesMethod buildGetUpdatesMethod(final List<UpdateType> allowedUpdates, final Long state) {

@@ -2,18 +2,18 @@
 
 # Reactive Telegram Bot Java Library
 
-**TBD**
+Simple library for the Telegram Bot API written with reactor framework.
 
 ## Main Features
 
 - [x] Long polling updates
 - [x] Method validation
 - [x] Method execution
+- [x] File downloading
+- [ ] Spring autoconfiguration
 - [ ] Spring-native compatibility
-- [ ] File downloading
 - [ ] Embedded webhook server
 - [ ] Bot builder framework
-- [ ] Spring autoconfiguration
 
 ## How to use
 
