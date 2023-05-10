@@ -1,0 +1,8 @@
+telegram:
+  bot:
+    token:
+    baseUrl: https://api.telegram.org/
+    timeout: PT10S
+    longPollingTimeout: PT50S
+    validation:
+      enabled: false

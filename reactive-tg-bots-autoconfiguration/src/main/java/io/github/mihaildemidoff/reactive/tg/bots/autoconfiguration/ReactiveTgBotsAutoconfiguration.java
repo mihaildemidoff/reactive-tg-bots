@@ -48,6 +48,7 @@ public class ReactiveTgBotsAutoconfiguration {
     }
 
     @Bean
+    @ConditionalOnClass(Validator.class)
     @ConditionalOnMissingBean(ValidationService.class)
     @ConditionalOnBean(Validator.class)
     @ConditionalOnProperty(name = "telegram.bot.validation.enabled", havingValue = "true", matchIfMissing = true)

@@ -18,6 +18,7 @@
     <modules>
         <module>reactive-tg-bots-examples-simple</module>
         <module>reactive-tg-bots-examples-spring-boot3</module>
+        <module>reactive-tg-bots-examples-spring-boot2</module>
     </modules>
 
 </project>
